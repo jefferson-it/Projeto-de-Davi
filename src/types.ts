@@ -1,5 +1,7 @@
+// ============= [ Importações ]
 import { ObjectId } from "mongodb"
 
+// ============= [ Interfaces Importantes ]
 export interface RespostaAPI {
     tipo: 'erro' | 'sucesso' // tipo de mensagem
     mensagem: string, // mensagem 
@@ -10,6 +12,9 @@ export interface RespostaAPI {
 interface MongoData {
     _id: ObjectId | string
 }
+
+
+// ============= [ Usuários ]
 
 export interface User extends MongoData {
     username: string // Chave para login
@@ -26,3 +31,24 @@ export interface Token extends MongoData {
     type: 'auth'
     expires: Date
 }
+
+
+// ============= [ Categorias ]
+// Category <1> ----- <n> Product
+export interface Category extends MongoData {
+    nome: string
+    urlId: string
+}
+
+
+
+// ============= [ Produtos ]
+
+export interface Product extends MongoData {
+    nome: string
+    urlId: string
+    categoria: Category['_id']
+    preco: number
+    desc: string
+}
+

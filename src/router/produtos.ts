@@ -1,0 +1,278 @@
+// ============= [ Importações ]
+import { Router } from "express";
+import { ObjectId } from "mongodb";
+import { getCol } from "../database";
+import { isAdminUser, userLogged } from "./auth";
+import { Product } from "../types";
+import { toBRL } from "../utils";
+
+// ============= [ Constantes ]
+const products = Router();
+const api = Router();
+
+const CategoriesCollection = getCol('categories');
+const ProductsCollection = getCol('products');
+
+// ============= [ GET HANDLER ]
+api.get('/lista', async (req, res) => {
+    // Acesso GET: /produtos/api/list
+    const {
+        limite, // Limite de itens a ser obtidos (se não preenchido é 10)
+        pular // Quantos itens deve pular (se não preenchido é 0)
+    } = req.query; // ?limite=10&pular=10
+
+
+    // Obtendo lista de produtos
+    const lista = await getCol('products').find()
+        .limit(Number(limite) || 10) // limita a obtenção em 10 itens
+        .skip(Number(pular) || 0) // pula uma quantidade de itens
+        .toArray(); // Convertendo os dados em Array
+
+    // Entregando pro cliente os dados
+    res.json(lista);
+})
+
+api.get('/obter', async (req, res) => {
+    // Acesso GET: /produtos/api/one
+    const { id } = req.query; // ?id=esponja
+
+    // Obtendo o um item pelo urlId
+    let item = await getCol('products').findOne({ urlId: id });
+
+    if (!item) {
+        // Obtendo o um item pelo _id
+        item = await getCol('products').findOne({ _id: new ObjectId(id?.toString()) });
+    }
+
+    // Entregando pro cliente o item
+    res.json(item);
+})
+
+// ============= [ POST HANDLER ]
+api.post('/create', userLogged, isAdminUser, async (req, res) => {
+    // Acesso POST: /produtos/api/create
+
+    type formData = Omit<Product, 'urlId' | "categoria"> & {
+        categoria: string
+    };
+
+    // Pegando os dados vindo do formulário
+    const { nome: nomeOriginal, categoria: categoriaOriginal, desc: descOriginal, preco: precoOriginal } = req.body as formData;
+    const nome = nomeOriginal.trim(); // Removendo sobras ex.: "Nome " -> "Nome" 
+    const categoria = categoriaOriginal.trim(); // Removendo sobras ex.: "Nome " -> "Nome"
+    const desc = descOriginal.trim(); // Removendo sobras ex.: "Nome " -> "Nome"
+    const preco = Number(precoOriginal); // Transforma em Numero
+
+    // Array que irá validar os dados que vieram do formulário
+    const validar = [
+        {
+            valido: !nome,
+            message: "Você esqueceu o nome do produto.",
+            campo: 'nome'
+        },
+        {
+            valido: !categoria,
+            message: "Você esqueceu o nome da categoria.",
+            campo: 'categoria'
+        },
+        {
+            valido: !desc,
+            message: "Não colocou a descrição do produto.",
+            campo: 'desc'
+        },
+        {
+            valido: desc.length < 10,
+            message: "Descrição muito curta, coloque pelo menos 10 caracteres.",
+            campo: 'desc'
+        },
+        {
+            valido: !preco,
+            message: "Não colocou o preço do produto.",
+            campo: 'preco'
+        },
+        {
+            valido: preco <= 0,
+            message: `O preço ${toBRL(preco)} é invalido.`,
+            campo: 'preco'
+        },
+        {
+            valido: !!await ProductsCollection.findOne({ nome }, { projection: { _id: 1 } }),
+            message: `Existe um produto com o nome ${nome}.`,
+            campo: 'nome'
+        }
+    ];
+
+    // Mapeando o array e verificando
+    for (const { valido, ...mensagem } of validar) {
+        if (!valido) {
+            res.json({
+                ...mensagem,
+                tipo: 'erro'
+            })
+            return
+        }
+    }
+
+    // Pesquisando a categoria alvo, e se não existir retornar um erro
+    const categoriaAlvo = await CategoriesCollection.findOne({ nome: categoria }, { projection: { _id: 1 } });
+
+    if (!categoriaAlvo) {
+        res.json({
+            message: `A categoria ${categoria} não existe.`,
+            campo: 'categoria'
+        })
+        return
+    }
+
+    // Criando o URL ID do produto, através do nome
+    let urlId = nome.trim().replace(/ /g, '-').toLowerCase();
+
+    // Recriando o URL ID do produto, através do nome, com prefixo aleatório, se existir um produto com esta URL ID
+    while (await ProductsCollection.findOne({ urlId: urlId }, { projection: { _id: 1 } })) {
+        let c = Math.random().toString(16).split(".").at(-1)
+        urlId = `${nome.trim().replace(/ /g, '-').toLowerCase()}-${c}`;
+    }
+
+    // Criando o novo produto
+    const novoProduto: Product = {
+        nome,
+        urlId,
+        categoria: categoriaAlvo._id,
+        preco,
+        desc,
+        _id: new ObjectId()
+    }
+
+    // Inserindo no banco de dadso
+    await CategoriesCollection.insertOne(novoProduto)
+
+
+    res.json({
+        tipo: 'sucesso',
+        mensagem: 'Produto criada com sucesso!',
+        dados: novoProduto
+    })
+})
+
+api.post('/edit', userLogged, isAdminUser, async (req, res) => {
+    // Acesso POST: /produtos/api/edit
+
+    type formData = Omit<Product, "categoria"> & {
+        categoria: string
+    };
+
+    // Pegando os dados vindo do formulário
+    const { nome: nomeOriginal, urlId, categoria: categoriaOriginal, desc, preco: precoOriginal } = req.body as formData;
+
+
+    // Pegando o item
+    const existe = await ProductsCollection.findOne({ urlId }, { projection: { _id: 1 } });
+
+    if (!existe) {
+        res.json({
+            mensagem: `O produto ${urlId} não existe`,
+            campo: 'urlId',
+        });
+
+        return;
+    }
+
+    // Constante    
+    const $set = {};
+    const nome = nomeOriginal.trim();
+    const categoria = categoriaOriginal.trim()
+    const preco = Number(precoOriginal); // Transforma em Numero
+
+    // Array que irá validar os dados que vieram do formulário
+    const validar = [
+        {
+            valido: !nome,
+            message: "Você esqueceu o nome do produto.",
+            campo: 'nome',
+            valor: nome,
+        },
+        {
+            valido: (async () => {
+                const ex = await ProductsCollection.findOne({ nome }, { projection: { _id: 1 } });
+
+                return ex && ex._id.toString() !== existe._id.toString()
+            })(),
+            message: `Existe um produto com o nome ${nome}.`,
+            campo: 'nome',
+            valor: nome,
+        },
+        {
+            valido: !categoria,
+            message: "Você esqueceu o nome da categoria.",
+            campo: 'categoria',
+            valor: categoria,
+        },
+        {
+            valido: !desc,
+            message: "Não colocou a descrição do produto.",
+            campo: 'desc',
+            valor: desc,
+        },
+        {
+            valido: desc.length < 10,
+            message: "Descrição muito curta, coloque pelo menos 10 caracteres.",
+            campo: 'desc',
+            valor: desc,
+        },
+        {
+            valido: !preco,
+            message: "Não colocou o preço do produto.",
+            campo: 'preco',
+            valor: preco,
+
+        },
+        {
+            valido: preco <= 0,
+            message: `O preço ${toBRL(preco)} é invalido.`,
+            campo: 'preco',
+            valor: preco,
+        }
+    ];
+
+    // Mapeando o array e verificando
+    for (const { valido, message, campo, valor } of validar) {
+        if (!valido) {
+            res.json({
+                mensagem: message,
+                campo,
+                tipo: 'erro'
+            })
+            return
+        }
+
+        if (nome)
+            if ((existe as any)[campo] !== valor) {
+                ($set as any)[campo] = valor
+            }
+    }
+
+    // Pesquisando a categoria alvo, e se não existir retornar um erro
+    const categoriaAlvo = await CategoriesCollection.findOne({ nome: categoria }, { projection: { _id: 1 } });
+
+    if (!categoriaAlvo) {
+        res.json({
+            message: `A categoria ${categoria} não existe.`,
+            campo: 'categoria'
+        })
+        return
+    }
+
+    // Atualizando o item
+    await ProductsCollection.updateOne({ urlId }, { $set });
+
+    res.json({
+        tipo: 'sucesso',
+        mensagem: 'Produto criado com sucesso!',
+        dados: null
+    })
+})
+
+// ============= [ Configurando rota ]
+products.use('/api', api); // /produtos/api
+
+export default products;
