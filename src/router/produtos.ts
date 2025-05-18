@@ -4,7 +4,7 @@ import { ObjectId } from "mongodb";
 import { getCol } from "../database";
 import { isAdminUser, userLogged } from "./auth";
 import { Product } from "../types";
-import { toBRL } from "../utils";
+import { saveBase64File, toBRL } from "../utils";
 
 // ============= [ Constantes ]
 const products = Router();
@@ -53,15 +53,17 @@ api.post('/create', userLogged, isAdminUser, async (req, res) => {
     // Acesso POST: /produtos/api/create
 
     type formData = Omit<Product, 'urlId' | "categoria"> & {
-        categoria: string
+        categoria: string,
+        icone: string
     };
 
     // Pegando os dados vindo do formulário
-    const { nome: nomeOriginal, categoria: categoriaOriginal, desc: descOriginal, preco: precoOriginal } = req.body as formData;
+    const { nome: nomeOriginal, categoria: categoriaOriginal, quantidade: qtdOriginal, desc: descOriginal, preco: precoOriginal, icone } = req.body as formData;
     const nome = nomeOriginal.trim(); // Removendo sobras ex.: "Nome " -> "Nome" 
     const categoria = categoriaOriginal.trim(); // Removendo sobras ex.: "Nome " -> "Nome"
     const desc = descOriginal.trim(); // Removendo sobras ex.: "Nome " -> "Nome"
     const preco = Number(precoOriginal); // Transforma em Numero
+    const quantidade = Number(qtdOriginal.toString().trim())
 
     // Array que irá validar os dados que vieram do formulário
     const validar = [
@@ -99,6 +101,21 @@ api.post('/create', userLogged, isAdminUser, async (req, res) => {
             valido: !!await ProductsCollection.findOne({ nome }, { projection: { _id: 1 } }),
             message: `Existe um produto com o nome ${nome}.`,
             campo: 'nome'
+        },
+        {
+            valido: !icone,
+            message: "Este produto está sem imagem",
+            campo: "icone"
+        },
+        {
+            valido: /^data:image\/[a-zA-Z]+;base64,/.test(icone),
+            message: "Imagem ou arquivo invalido",
+            campo: "icone"
+        },
+        {
+            valido: !quantidade || quantidade <= 0,
+            message: "Quantidade invalida",
+            campo: "quantidade"
         }
     ];
 
@@ -140,11 +157,21 @@ api.post('/create', userLogged, isAdminUser, async (req, res) => {
         categoria: categoriaAlvo._id,
         preco,
         desc,
+        quantidade,
         _id: new ObjectId()
     }
 
+    // Salvando imagem 
+    if (saveBase64File(icone, `${urlId}.webp`)) {
+        res.json({
+            tipo: 'error',
+            mensagem: 'Erro ao salvar a imagem'
+        })
+        return
+    }
+
     // Inserindo no banco de dadso
-    await CategoriesCollection.insertOne(novoProduto)
+    await ProductsCollection.insertOne(novoProduto)
 
 
     res.json({
@@ -158,11 +185,13 @@ api.post('/edit', userLogged, isAdminUser, async (req, res) => {
     // Acesso POST: /produtos/api/edit
 
     type formData = Omit<Product, "categoria"> & {
-        categoria: string
+        categoria: string,
+        icone: string,
     };
 
     // Pegando os dados vindo do formulário
-    const { nome: nomeOriginal, urlId, categoria: categoriaOriginal, desc, preco: precoOriginal } = req.body as formData;
+    const { nome: nomeOriginal, urlId, categoria: categoriaOriginal, quantidade: qtdOriginal, desc, preco: precoOriginal, icone } = req.body as formData;
+
 
 
     // Pegando o item
@@ -182,6 +211,7 @@ api.post('/edit', userLogged, isAdminUser, async (req, res) => {
     const nome = nomeOriginal.trim();
     const categoria = categoriaOriginal.trim()
     const preco = Number(precoOriginal); // Transforma em Numero
+    const quantidade = Number(qtdOriginal.toString().trim)
 
     // Array que irá validar os dados que vieram do formulário
     const validar = [
@@ -231,6 +261,18 @@ api.post('/edit', userLogged, isAdminUser, async (req, res) => {
             message: `O preço ${toBRL(preco)} é invalido.`,
             campo: 'preco',
             valor: preco,
+        },
+        {
+            valido: /^data:image\/[a-zA-Z]+;base64,/.test(icone),
+            message: "Imagem ou arquivo invalido",
+            campo: "icone",
+            valor: null
+        },
+        {
+            valido: quantidade < 0,
+            message: "Quantidade invalida",
+            campo: "quantidade",
+            valor: preco
         }
     ];
 
@@ -245,10 +287,9 @@ api.post('/edit', userLogged, isAdminUser, async (req, res) => {
             return
         }
 
-        if (nome)
-            if ((existe as any)[campo] !== valor) {
-                ($set as any)[campo] = valor
-            }
+        if ((existe as any)[campo] !== valor && valor !== null) {
+            ($set as any)[campo] = valor
+        }
     }
 
     // Pesquisando a categoria alvo, e se não existir retornar um erro
@@ -262,13 +303,22 @@ api.post('/edit', userLogged, isAdminUser, async (req, res) => {
         return
     }
 
+    // Salvando imagem 
+    if (saveBase64File(icone, `${urlId}.webp`)) {
+        res.json({
+            tipo: 'error',
+            mensagem: 'Erro ao salvar a imagem'
+        })
+        return
+    }
+
     // Atualizando o item
     await ProductsCollection.updateOne({ urlId }, { $set });
 
     res.json({
         tipo: 'sucesso',
         mensagem: 'Produto criado com sucesso!',
-        dados: null
+        dados: { ...existe, ...$set }
     })
 })
 

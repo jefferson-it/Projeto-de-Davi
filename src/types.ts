@@ -49,6 +49,7 @@ export interface Product extends MongoData {
     urlId: string
     categoria: Category['_id']
     preco: number
+    quantidade: number
     desc: string
 }
 

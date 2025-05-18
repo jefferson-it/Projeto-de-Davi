@@ -95,7 +95,9 @@ As rotas `produtos` e `categorias` tem as seguintes rotas idênticas, dentro do 
   "nome": "string",
   "categoria": "string",
   "desc": "string (mínimo 10 caracteres)",
-  "preco": "string ou float"
+  "preco": "string ou float",
+  "icone": "string(base64)",
+  "quantidade": "int"
 }
 ```
 
@@ -111,7 +113,9 @@ As rotas `produtos` e `categorias` tem as seguintes rotas idênticas, dentro do 
   "nome": "string",
   "categoria": "string",
   "desc": "string (mínimo 10 caracteres)",
-  "preco": "string ou float"
+  "preco": "string ou float",
+  "quantidade": "int ou opcional",
+  "icone": "string(base64) ou opcional"
 }
 ```
 
