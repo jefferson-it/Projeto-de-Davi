@@ -4,6 +4,7 @@ import { ObjectId } from "mongodb";
 import { getCol } from "../database";
 import { isAdminUser, userLogged } from "./auth";
 import { Category } from "../types";
+import { getPage } from "../utils";
 
 // ============= [ Constantes ]
 const categories = Router();
@@ -11,6 +12,15 @@ const api = Router();
 const CategoriesCollection = getCol('categories');
 
 // ============= [ GET HANDLER ]
+categories.get("/cadastrar", userLogged, isAdminUser, (_, res) => {
+    res.send(getPage('cadastrocategorias'))
+})
+
+categories.get("/editar", userLogged, isAdminUser, (_, res) => {
+    res.send(getPage('editarcategorias'))
+})
+
+
 api.get('/lista', async (req, res) => {
     // Acesso GET: /categorias/api/lista
     const {

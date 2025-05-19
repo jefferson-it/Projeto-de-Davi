@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Produtos</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #3498db;
+            /* Fundo azul claro */
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            background-color: white;
+            /* Barra lateral branca */
+            width: 220px;
+            /* Largura fixa da barra lateral */
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Centralizar botões horizontalmente */
+            justify-content: flex-start;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            /* Sombra suave na lateral */
+        }
+
+        .sidebar-button {
+            background-color: white;
+            color: #007bff;
+            border: 1px solid #007bff;
+            /* Adiciona borda azul */
+            border-radius: 6px;
+            padding: 10px 15px;
+            /* Aumentei um pouco o padding */
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            width: 80%;
+            /* Largura fixa dos botões */
+            margin-bottom: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            /* Aumentei um pouco a fonte */
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease, border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .sidebar-button:hover {
+            background-color: #e0f7fa;
+            /* Azul bem claro no hover */
+            color: #0056b3;
+            border-color: #0056b3;
+            transform: scale(1.02);
+        }
+
+        .product-grid-container {
+            flex-grow: 1;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            /* Quatro colunas iguais */
+            grid-template-rows: repeat(2, auto);
+            /* Duas linhas automáticas */
+            gap: 20px;
+            justify-content: end;
+            /* Alinhar a grade ao final (direita) */
+            margin-left: 220px;
+            /* Espaço para a barra lateral */
+            box-sizing: border-box;
+            align-items: start;
+            /* Alinhar os itens da grade ao início (topo) */
+        }
+
+        .product-card {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .product-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .product-title {
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .product-price {
+            color: #007bff;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .view-details-button {
+            background-color: #0099ff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+        }
+
+        .view-details-button:hover {
+            background-color: #007acc;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+</head>
+
+<body>
+    <div class="sidebar">
+        <a href="/produtos/cadastrar" class="sidebar-button">Cadastrar Produto</a>
+        <a href="/categorias/cadastrar" class="sidebar-button">Adicionar Categoria</a>
+    </div>
+    <div id="product-container" class="product-grid-container">
+
+    </div>
+
+    <script>
+        const productContainer = document.querySelector("#product-container");
+        let prodsQuantidade = 0;
+
+        async function obterProdutos() {
+            try {
+                const res = await fetch(`/produtos/api/lista?pular=${prodsQuantidade}`);
+
+                const lista_obtida = await res.json();
+
+                if (lista_obtida.length) {
+                    prodsQuantidade += lista_obtida.length;
+                    const dadosEmHtml = lista_obtida.reduce((a, b) => `${a}${cardProduto(b).trim()}`, '');
+
+                    productContainer.insertAdjacentHTML('beforeend', dadosEmHtml)
+
+
+                    if (lista_obtida.length == 10) await obterProdutos()
+                }
+            } catch (error) {
+                console.log(error.message);
+                console.log(error);
+
+
+            }
+        }
+
+        function cardProduto({ nome, preco, urlId, quantidade, desc }) {
+            return `<div class="product-card">
+                <img src="/imagens/${urlId}.webp" alt="${nome}">
+                <h3 class="product-title">${nome}</h3>
+                <p class="product-price">${toBRL(preco)}</p>
+                <a href="#" class="view-details-button">Ver Detalhes</a>
+            </div>`
+        }
+
+        function toBRL(valor) {
+            return `R$ ${parseFloat((valor || 0).toString()).toFixed(2).replace(".", '.')}`;
+        }
+
+        obterProdutos();
+    </script>
+</body>
+
+</html>

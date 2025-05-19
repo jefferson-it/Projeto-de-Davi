@@ -50,10 +50,11 @@ import express from "express";
 import bodyParser from "body-parser";
 import session from "express-session";
 import FileStoreConstructor from 'session-file-store';
-import auth from "./router/auth";
+import auth, { userNotLogged } from "./router/auth";
 import cors from "cors";
 import categories from "./router/categorias";
 import products from "./router/produtos";
+import { getPage } from "./utils";
 
 // ============= [ Constantes ]
 const app = express(); // Servidor
@@ -63,7 +64,7 @@ const FileStore = FileStoreConstructor(session); // Gerenciador de Sessão em ar
 // ============= [ Configurações ]
 
 
-app.use(express.static(`${__dirname}/public`)); // Configurando pasta estática
+app.use(express.static(`./public`)); // Configurando pasta estática  
 
 /**
  * Aqui eu configuro o cors(Cross-Origin Resource Sharing)
@@ -75,13 +76,13 @@ app.use(express.static(`${__dirname}/public`)); // Configurando pasta estática
  *  e outros meios de consumir api 
  */
 app.use(cors({
-    origin: 'http://localhost:5500',
+    origin: '*',
     credentials: true
 }));
 
 // Configurando o body-parser para poder converter os dados vindo do formulário em JSON
-app.use(bodyParser.urlencoded({ extended: true, limit: 500 }));
-app.use(bodyParser.json({ limit: 500 }))
+app.use(bodyParser.urlencoded({ extended: true, limit: "500gb" }));
+app.use(bodyParser.json({ limit: "500gb" }))
 
 /**
  * Configurando a sessões com express-session 
@@ -106,9 +107,25 @@ app.use(session({
 }))
 
 // ============= [  Configurando as rotas ]
+
 app.use("/auth", auth); // Rota de autenticação
 app.use("/categorias", categories); // rota de categorias
 app.use("/produtos", products); // rota de produtos
+
+
+app.get("/", (_, res) => {
+    res.send(getPage('index'))
+})
+
+app.get("/login", userNotLogged, (_, res) => {
+    res.send(getPage('login'))
+})
+
+app.get("/signup", userNotLogged, (_, res) => {
+    res.send(getPage('signup'))
+})
+
+
 
 // Rodando o servidor
 app.listen(process.env.PORT || 3010, () => {

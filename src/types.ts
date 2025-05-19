@@ -24,6 +24,8 @@ export interface User extends MongoData {
 
 /**
  * User <1> ----- <3> Token
+ * 
+ * Um usuário pode ter 3 tokens
  */
 export interface Token extends MongoData {
     to: User["_id"],
@@ -35,6 +37,7 @@ export interface Token extends MongoData {
 
 // ============= [ Categorias ]
 // Category <1> ----- <n> Product
+// 1 Categoria pra incontáveis produtos
 export interface Category extends MongoData {
     nome: string
     urlId: string

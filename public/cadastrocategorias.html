@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Categoria</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #3498db;
+            display: flex;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .sidebar {
+            background-color: #f0f0f0;
+            width: 150px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .sidebar a,
+        .sidebar button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+            text-decoration: none;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            cursor: pointer;
+            transform: scale(1);
+            opacity: 1;
+            transition: background-color 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .sidebar a:hover,
+        .sidebar button:hover {
+            background-color: #0056b3;
+            animation: pulse-on-hover 1.5s infinite alternate;
+        }
+
+        @keyframes pulse-on-hover {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1.1);
+                opacity: 0.7;
+            }
+        }
+
+        .content-container {
+            flex-grow: 1;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button[type="submit"] {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #1e7e34;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <a href="/" class="animated-button">Ver Produtos</a>
+        <a href="/produtos/cadastrar" class="animated-button">Cadastrar Produto</a>
+    </div>
+    <div class="content-container">
+        <div class="container">
+            <h2>Cadastrar Nova Categoria</h2>
+            <form id="cad-cat" method="POST">
+                <div class="form-group">
+                    <label for="nome_categoria">Nome da Categoria:</label>
+                    <input type="text" id="nome_categoria" name="nome" required>
+                </div>
+                <button type="submit">Cadastrar Categoria</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const form = document.querySelector("#cad-cat");
+
+        form.addEventListener('submit', async e => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const campos = ["nome"]
+
+            const body = campos.reduce((a, b) => ({ ...a, [b]: formData.get(b) || '' }), {});
+
+            const res = await fetch("/categorias/api/criar", {
+                method: "POST",
+                credentials: 'include',
+                body: JSON.stringify(body),
+                headers: {
+                    'Content-Type': "application/json"
+                }
+            });
+
+            const dados = await res.json();
+            alert(`${dados.tipo}: ${dados.mensagem}`);
+
+            if (dados.tipo === "sucesso") {
+                history.go("/");
+            }
+
+            const inputs = form.querySelectorAll("input");
+            for (const input of inputs) {
+                if (input.name === dados.campo) {
+                    input.setAttribute('is-invalid', 'true');
+                } else {
+                    input.removeAttribute('is-invalid');
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Produtos</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        .left-side {
+            background-color: #3498db;
+            width: 50%;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+
+        .sidebar-button {
+            background-color: white;
+            color: #007bff;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            width: auto;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .sidebar-button:hover {
+            background-color: #f0f0f0;
+            transform: scale(1.02);
+        }
+
+        .right-side {
+            background-color: white;
+            width: 50%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .form-card {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 80%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            margin: 0 0 20px;
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="file"],
+        select {
+            width: calc(100% - 12px);
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        button.submit-button {
+            background-color: #0099ff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 15px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        button.submit-button:hover {
+            background-color: #007acc;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            height: auto;
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .image-placeholder img {
+            max-width: 80%;
+            max-height: 80%;
+            object-fit: contain;
+        }
+
+        .input-mins {
+            display: flex;
+            flex-direction: row;
+        }
+
+
+        input[is-invalid] {
+            border: 2px solid red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="left-side">
+        <a href="/" class="sidebar-button">Ver Produtos</a>
+        <a href="/categorias/cadastrar" class="sidebar-button">Adicionar Categoria</a>
+        <div class="image-placeholder">
+            <img src="traveloka-illustration.png" alt="Ilustração Lateral">
+        </div>
+    </div>
+    <div class="right-side">
+        <div class="form-card">
+            <h2>Cadastrar novo produto</h2>
+            <form id="cad-prod" method="POST" enctype="multipart/form-data">
+                <label>Nome do produto:</label>
+                <input required type="text" name="nome" placeholder="Nome do produto">
+
+                <label>Descrição:</label>
+                <input required type="text" name="desc" placeholder="Descrição">
+
+                <div class="input-mins">
+                    <span>
+                        <label>Preço:</label>
+                        <input required type="number" name="preco" placeholder="Preço" min="0" step="0.01">
+                    </span>
+                    <span>
+                        <label>Quantidade:</label>
+                        <input required type="number" name="quantidade" placeholder="Quantidade" min="0" step="1">
+                    </span>
+                </div>
+
+                <label>Categoria:</label>
+                <select required name="categoria">
+                    <option value="">Selecione a categoria</option>
+                </select>
+
+                <label>Imagem do produto:</label>
+                <input required type="file" name="icone" accept="image/*">
+
+                <button type="submit" class="submit-button">Cadastrar produtos</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const form = document.querySelector("#cad-prod");
+        const select = form.querySelector("[name=categoria]");
+        let categoriasQuantidade = 0;
+
+        async function obterCategorias() {
+            try {
+                const res = await fetch(`/categorias/api/lista?`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                const dado = await res.json();
+
+                if (dado.length) {
+                    categoriasQuantidade += dado.length;
+                    const dadosEmHtml = dado.reduce((a, b) => `${a}${selectCategoria(b).trim()}`, '');
+
+                    select.insertAdjacentHTML('beforeend', dadosEmHtml)
+                }
+            } catch (error) {
+                console.log(error.message);
+                console.log(error);
+            }
+
+        }
+
+        obterCategorias()
+
+        function selectCategoria({ nome, urlId }) {
+            return `<option value="${nome}">${nome}</option>`
+        }
+
+        form.addEventListener('submit', async e => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const campos = ["nome", "desc", "preco", "quantidade", "categoria", "icone"]
+
+            const body = campos.reduce((a, b) => ({ ...a, [b]: formData.get(b) || '' }), {});
+
+            const reader = new FileReader();
+
+            reader.readAsDataURL(body.icone);
+
+            reader.onload = async () => {
+                const res = await fetch("/produtos/api/criar", {
+                    method: "POST",
+                    credentials: 'include',
+                    body: JSON.stringify({ ...body, icone: reader.result }),
+                    headers: {
+                        'Content-Type': "application/json",
+                    }
+                });
+
+                const dados = await res.json();
+
+                alert(`${dados.tipo}: ${dados.mensagem}`);
+
+                if (dados.tipo === "sucesso") {
+                    history.go("/");
+                }
+
+                const inputs = form.querySelectorAll("input");
+
+                for (const input of inputs) {
+                    if (input.name === dados.campo) {
+                        input.setAttribute('is-invalid', 'true');
+                    } else {
+                        input.removeAttribute('is-invalid');
+                    }
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

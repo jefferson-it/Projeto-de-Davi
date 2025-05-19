@@ -115,7 +115,7 @@ export async function userLogged(req: Request, res: Response, next: NextFunction
             username,
         }, token);
 
-        const diffMinutos = (Date.now() - lastAccess.getTime()) / (1000 * 60);
+        const diffMinutos = (Date.now() - new Date(lastAccess.toString()).getTime()) / (1000 * 60);
 
         if (!tokenValido && diffMinutos <= 16) {
             const expiresToken = new Date(Date.now() + (1000 * 60 * 60 * 24 * 5));
@@ -170,7 +170,7 @@ export async function userNotLogged(req: Request, res: Response, next: NextFunct
             username,
         }, token);
 
-        const diffMinutos = (Date.now() - lastAccess.getTime()) / (1000 * 60);
+        const diffMinutos = (Date.now() - new Date(lastAccess.toString()).getTime()) / (1000 * 60);
 
         if (!tokenValido && diffMinutos <= 16) {
             const expiresToken = new Date(Date.now() + (1000 * 60 * 60 * 24 * 5));
@@ -315,34 +315,29 @@ api.post('/registrar', userNotLogged, async (req, res) => {
     }
 
     // Pegando os dados vindo do formulário
-    const { confirmar_senha, senha, termos, username } = req.body as formData;
+    const { confirmar_senha, senha, username } = req.body as formData;
 
     /**
      * Este array serve para validar os dados enviados pelo front-end no consumo da api
      */
     const validar = [
         {
-            valido: !termos || termos === "off",
-            message: "Você não aceitou o termos não podemos prosseguir.",
-            campo: 'termos'
-        },
-        {
-            valido: !username.trim(),
+            valido: username.trim(),
             mensagem: 'Você esqueceu de por o seu username',
             campo: 'username'
         },
         {
-            valido: !senha.trim(),
+            valido: senha.trim(),
             mensagem: 'Você esqueceu de por sua senha',
             campo: 'senha'
         },
         {
-            valido: !confirmar_senha.trim(),
+            valido: confirmar_senha.trim(),
             mensagem: 'Você esqueceu de confirmar sua senha',
             campo: 'confirmar_senha'
         },
         {
-            valido: senha != confirmar_senha,
+            valido: senha === confirmar_senha,
             mensagem: 'As senhas são diferentes',
             campo: 'confirmar_senha,senha'
         },
@@ -397,6 +392,14 @@ api.post('/registrar', userNotLogged, async (req, res) => {
     // Salvando dados no banco de dado
     await TokensCollection.insertOne(novoToken);
     await UsersCollection.insertOne(novoUser);
+
+    req.session.user = {
+        _id: novoUser._id,
+        lastAccess: new Date(),
+        token: token,
+        username: novoUser.username
+    }
+
 
     res.json({
         tipo: 'sucesso',

@@ -1,5 +1,5 @@
 // ============= [ Importações ]
-import { writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 
 // ============= [ Utilitários ]
 
@@ -23,4 +23,10 @@ export function saveBase64File(src: string, filename: string) {
     } catch (e) {
         return false
     }
+}
+
+export function getPage(file: string) {
+    const result = readFileSync(`./public/${file}.html`, 'utf-8');
+
+    return result
 }

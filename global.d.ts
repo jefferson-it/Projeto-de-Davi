@@ -6,7 +6,7 @@ declare module 'express-session' {
         user?: {
             _id: User['_id'];
             token: string;
-            lastAccess: Date,
+            lastAccess: Date | string,
             username: string
         } | null;
     }
