@@ -194,7 +194,6 @@ api.post('/editar', auth_1.userLogged, auth_1.isAdminUser, (req, res) => __await
         });
         return;
     }
-    console.log(req.body);
     // Constante    
     const $set = {};
     const nome = nomeOriginal.trim();
@@ -284,19 +283,23 @@ api.post('/editar', auth_1.userLogged, auth_1.isAdminUser, (req, res) => __await
         });
         return;
     }
+    if ($set.categoria)
+        $set['categoria'] = categoriaAlvo._id;
     // Salvando imagem 
-    if (!(0, utils_1.saveBase64File)(icone, `${urlId}.webp`)) {
-        res.json({
-            tipo: 'error',
-            mensagem: 'Erro ao salvar a imagem'
-        });
-        return;
+    if (icone) {
+        if (!(0, utils_1.saveBase64File)(icone, `${urlId}.webp`)) {
+            res.json({
+                tipo: 'error',
+                mensagem: 'Erro ao salvar a imagem'
+            });
+            return;
+        }
     }
     // Atualizando o item
     yield ProductsCollection.updateOne({ urlId }, { $set });
     res.json({
         tipo: 'sucesso',
-        mensagem: 'Produto criado com sucesso!',
+        mensagem: 'Produto editado com sucesso!',
         dados: Object.assign(Object.assign({}, existe), $set)
     });
 }));

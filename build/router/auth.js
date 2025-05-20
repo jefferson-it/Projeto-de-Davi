@@ -213,7 +213,7 @@ api.get('/get-state', (req, res) => __awaiter(void 0, void 0, void 0, function* 
     if (req.session.user) {
         // Obtendo o usuário
         const user = yield UsersCollection.findOne({
-            _id: req.session.user._id
+            _id: new mongodb_1.ObjectId(req.session.user._id)
         }, {
             projection: {
                 senha: 0

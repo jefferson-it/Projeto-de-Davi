@@ -219,9 +219,6 @@ api.post('/editar', userLogged, isAdminUser, async (req, res) => {
         return;
     }
 
-    console.log(req.body);
-
-
     // Constante    
     const $set = {};
     const nome = nomeOriginal.trim();
@@ -318,6 +315,8 @@ api.post('/editar', userLogged, isAdminUser, async (req, res) => {
         })
         return
     }
+
+    if (($set as any).categoria) ($set as any)['categoria'] = categoriaAlvo._id
 
     // Salvando imagem 
     if (icone) {

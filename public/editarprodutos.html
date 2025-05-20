@@ -7,15 +7,15 @@
     <title>Cadastro de Produtos</title>
     <style>
         body {
-            margin: 0;
+            font-family: sans-serif;
             display: flex;
-            font-family: Arial, sans-serif;
             min-height: 100vh;
+            margin: 0;
         }
 
         .left-side {
             background-color: #3498db;
-            width: 50%;
+            width: 220px;
             height: 100vh;
             padding: 20px;
             box-sizing: border-box;
@@ -26,30 +26,30 @@
         }
 
         .sidebar-button {
-            background-color: white;
-            color: #007bff;
+            background-color: #2ecc71;
+            color: white;
             border: none;
-            border-radius: 6px;
-            padding: 8px 12px;
+            border-radius: 8px;
+            padding: 12px 20px;
             text-align: center;
             text-decoration: none;
             display: block;
-            width: auto;
-            margin-bottom: 8px;
+            width: 160px;
+            margin-bottom: 10px;
             cursor: pointer;
-            font-size: 12px;
-            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
             box-sizing: border-box;
         }
 
         .sidebar-button:hover {
-            background-color: #f0f0f0;
-            transform: scale(1.02);
+            background-color: #27ae60;
+            transform: scale(1.05);
         }
 
         .right-side {
             background-color: white;
-            width: 50%;
+            width: calc(100% - 220px);
             height: 100vh;
             display: flex;
             justify-content: center;
@@ -69,61 +69,71 @@
         }
 
         h2 {
-            margin: 0 0 20px;
-            text-align: center;
             color: #333;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             color: #555;
             font-weight: bold;
-            font-size: 14px;
         }
 
-        input[type="text"],
-        input[type="number"],
-        input[type="file"],
+        input,
         select {
-            width: calc(100% - 12px);
-            padding: 8px;
-            margin-bottom: 10px;
+            width: 100%;
+            padding: 12px;
             border: 1px solid #ddd;
-            border-radius: 6px;
+            border-radius: 8px;
             box-sizing: border-box;
-            font-size: 14px;
+            font-size: 16px;
+            margin-bottom: 5px;
         }
 
         button.submit-button {
-            background-color: #0099ff;
+            background-color: #2ecc71;
             color: white;
             border: none;
-            border-radius: 6px;
-            padding: 10px 15px;
+            border-radius: 8px;
+            padding: 14px 20px;
             cursor: pointer;
+            font-size: 18px;
             width: 100%;
-            font-size: 14px;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
         button.submit-button:hover {
-            background-color: #007acc;
+            background-color: #27ae60;
+            transform: scale(1.02);
         }
 
-        .image-placeholder {
-            width: 100%;
-            height: auto;
+        .edit-category-button-container {
             margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            text-align: center;
         }
 
-        .image-placeholder img {
-            max-width: 80%;
-            max-height: 80%;
-            object-fit: contain;
+        .edit-category-button {
+            background-color: white;
+            color: #007bff;
+            border: 1px solid #007bff;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .edit-category-button:hover {
+            background-color: #e0f7fa;
+            color: #0056b3;
+            border-color: #0056b3;
         }
     </style>
 </head>
@@ -133,9 +143,6 @@
         <a href="/" class="sidebar-button">Ver Produtos</a>
         <a href="/produtos/cadastrar" class="sidebar-button">Cadastrar Produto</a>
         <a href="/categorias/cadastrar" class="sidebar-button">Adicionar Categoria</a>
-        <div class="image-placeholder">
-            <img src="traveloka-illustration.png" alt="Ilustração Lateral">
-        </div>
     </div>
     <div class="right-side">
         <div class="form-card">
@@ -168,6 +175,9 @@
 
                 <button class="submit-button">Editar produtos</button>
             </form>
+            <div class="edit-category-button-container">
+                <a href="/" class="edit-category-button">Voltar ao inicio</a>
+            </div>
         </div>
     </div>
 

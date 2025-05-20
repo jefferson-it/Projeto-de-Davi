@@ -220,7 +220,7 @@ api.get('/get-state', async (req, res) => {
     if (req.session.user) {
         // Obtendo o usuário
         const user = await UsersCollection.findOne({
-            _id: req.session.user._id
+            _id: new ObjectId(req.session.user._id)
         }, {
             projection: {
                 senha: 0

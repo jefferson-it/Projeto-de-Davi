@@ -11,7 +11,7 @@ import { readFileSync, writeFileSync } from "fs";
  * @returns {string}
  */
 export function toBRL(valor: number | string): string {
-    return `R$ ${parseFloat((valor || 0).toString()).toFixed(2).replace(".", '.')}`;
+    return `R$ ${parseFloat((valor || 0).toString()).toFixed(2).replace(".", ',')}`;
 }
 
 export function saveBase64File(src: string, filename: string) {
