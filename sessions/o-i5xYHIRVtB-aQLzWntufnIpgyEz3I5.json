@@ -1,1 +1,17 @@
-{"cookie":{"originalMaxAge":1296000000,"expires":"2025-06-03T13:09:29.550Z","secure":false,"httpOnly":true,"path":"/","sameSite":"lax"},"user":{"_id":"682a57a971b5ac324f43d3e9","lastAccess":"2025-05-19T12:55:21.086Z","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImplZmZlcnNvbiIsImlhdCI6MTc0NzY1OTMyMSwiZXhwIjoxNzQ4MDkxMzIwfQ.WMdf1LGVe5i_EzKQeSr3uTCJj5wNilKpRfbZAPiVwpY","username":"jefferson"},"__lastAccess":1747660169554}
+{
+    "cookie": {
+        "originalMaxAge": 1296000000,
+        "expires": "2025-06-03T13:09:29.550Z",
+        "secure": false,
+        "httpOnly": true,
+        "path": "/",
+        "sameSite": "lax"
+    },
+    "user": {
+        "_id": "682a57a971b5ac324f43d3e9",
+        "lastAccess": "2025-05-19T12:55:21.086Z",
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImplZmZlcnNvbiIsImlhdCI6MTc0NzY1OTMyMSwiZXhwIjoxNzQ4MDkxMzIwfQ.WMdf1LGVe5i_EzKQeSr3uTCJj5wNilKpRfbZAPiVwpY",
+        "username": "jefferson"
+    },
+    "__lastAccess": 1747660169554
+}

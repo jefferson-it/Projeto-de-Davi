@@ -247,8 +247,6 @@
                 let inText = true;
 
                 if (search.value) {
-                    console.log(item.nome, search.value);
-
                     inText = item.nome.toLowerCase().trim().includes(search.value.trim().toLowerCase())
                 }
 
@@ -325,7 +323,7 @@
                 <h3 class="product-title">${nome}</h3>
                 <p class="product-price">${toBRL(preco)}</p>
                 <a href="#" class="view-details-button">Ver Detalhes</a>
-                ${usuario?.oc == 1 ? `<div class="edit-icon-container">
+                ${usuario?.oc === 1 ? `<div class="edit-icon-container">
                     <a href="/produtos/editar?id=${urlId}" class="edit-icon">✏️</a>
                     </div>`: ''
                 }

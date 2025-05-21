@@ -156,7 +156,7 @@
             alert(`${dados.tipo}: ${dados.mensagem}`);
 
             if (dados.tipo === "sucesso") {
-                history.go("/");
+                window.location.href = window.location.href;
             }
 
             const inputs = form.querySelectorAll("input");
